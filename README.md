@@ -17,4 +17,4 @@ At this point, these instructions are very limited.   If there is interest in wo
 
 The app and/or connection between the two needs improvement.  An API interface would be preferrable.   Until an API is available, I'm looking for help improving the code for the HTTP connection.  The HTTP connection is a bit slow and seems to bog down the Hubitat if you add a lot of devices or refersh the device states too often.  
 
-This Hubitat app was based on, and still shows header information for The Home Remote app for SmartThings.  
+This Hubitat app was based on, and still shows header information from The Home Remote app for SmartThings.  
