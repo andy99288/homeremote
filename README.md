@@ -13,8 +13,8 @@ At this point, these instructions are very limited.   If there is interest in wo
 7) When the script page pops up, replace the code with the code in the pluginscript found on this page and save it.   
 8) Right click on the new hubitat device in explorer, cick open, and go into settings.  This is where you put the connection info.   You need to add an item with "URL" for name. The type will already be filled with "PluginSetting", and under Value put the hubitat URL you got from the log.  Create a second item for "AccessToken" and put the bearer token in the value field.  Save all this. 
 9) Go back to the explorer, right click on Hubitat in devices, and choose Synchronize Devices.  The devices you authorized in Hubtitat should show up. 
-10) Start designing! See http://thehomeremote.com/ for documentation/community forums.   Basically, you add a control and assign its state to a device you have added.   
+10) Start designing! See http://thehomeremote.com/ for documentation/community forums.   Basically, you add a control and assign its state to one of the devices you just added.   
 
-The app and or connection between the two needs improvement.  An API interface would be preferrable.   Right now, and I'm looking for help developing it, the HTTP connection you set up above is a bit slow and seems to bog down the hubitat if you add a lot of devices.  
+The app and/or connection between the two needs improvement.  An API interface would be preferrable.   Until an APi is available, I'm looking for help improving the code for the HTTP connection.  The http connection is a bit slow and seems to bog down the hubitat if you add a lot of devices.  
 
 This app was based on, and still shows the original header information, for The Home Remote app for SmartThings.  
