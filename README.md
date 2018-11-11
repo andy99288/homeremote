@@ -2,7 +2,7 @@
 
 Until a more efficient connection can be made between Home Remote and Hubitat, these files are available for use and hopefully modification to make them better.
 
-At this point, these instructions are very limited.   If there is interest in working on this project, or people find the instructions to be vague they will be updated. 
+At this point, these instructions are very limited.   If there is interest in working on this project, or people find the instructions to be vague they will be updated.  Please leave all comments on the Hubitat community thread. 
 
 1) The hubitatapp code should be pasted into the Apps Code section of Hubitat.  OAuth needs to be enabled. 
 2) Add the user app in Hubitat under the Apps section. 
