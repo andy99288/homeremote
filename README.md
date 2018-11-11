@@ -1,6 +1,6 @@
 # Home Remote Integration for Hubitat
 
-Until an API connection can be made between Home Remote and Hubitat, these files are available for use and hopefully someone with coding skills can modify them to make them better.
+These files are available for use and hopefully someone with coding skills can modify them to make them better.
 
 At this point, these instructions are very limited.   If there is interest in working on this project, or people find the instructions to be vague they will be updated.  Please leave all comments on the Hubitat community thread. 
 
