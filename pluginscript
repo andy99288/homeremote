@@ -1,0 +1,84 @@
+plugin.OnChangeRequest = onChangeRequest;
+plugin.OnConnect = onConnect;
+plugin.OnDisconnect = onDisconnect;
+plugin.OnPoll = onPoll;
+plugin.OnSynchronizeDevices = onSynchronizeDevices;
+plugin.PollingInterval = 15000;
+plugin.Settings = { "URL": "", "AccessToken": "" };
+
+var http = new HTTPClient();
+
+function getDevice(id) {
+    for (var d in plugin.Devices) {
+        var device = plugin.Devices[d];
+        if (device.Id == id) {
+            return device;
+        }
+    }
+    return null;
+}
+
+function onChangeRequest(device, attribute, value) {
+    var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+    var content = { "deviceId": device.id, "attribute": attribute, "value":  value};
+    var r = http.put(plugin.Settings["URL"] + "/executeCommand", content, options);
+}
+
+function onConnect() {
+}
+
+function onDisconnect() {
+}
+
+function onPoll() {
+//  console.log("polling started");
+    	
+    var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+
+	try {  // trying to safely exit function on error so that it will try again on next poll
+	var s = http.get(plugin.Settings["URL"] + "/poll", options);
+   	 	}  
+    	catch (err) {
+//    	  console.log("poll get request failed");
+        return;  
+ 	 } 
+   
+    	var jsonArray = s.data;
+   	for (var g in jsonArray) {
+        	var jsonItem = jsonArray[g];
+        	var device = getDevice(jsonItem.id);
+        	if (!device) { // trying to stop "device undefined" error
+//        		console.log("caught device undefined error")
+        		return;}  
+        	if (jsonItem.attribute == null) { // trying to stop "attribute is null"
+//        		console.log("caught attribute is null error")
+        		return;}  
+       	if (device != null) {   	 	
+            		var attributeName = jsonItem.attribute;
+            		device[attributeName] = jsonItem.value;
+        	}
+	}
+//	  console.log("polling complete");
+}
+
+function onSynchronizeDevices() {
+    var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+    var t = http.get(plugin.Settings["URL"] + "/sync", options);
+    var jsonArray = t.data;
+    var allDevices = [];
+    for (var f in jsonArray) {
+    	 var jsonItem = jsonArray[f];
+        var device = getDevice(jsonItem.id);
+        	var pluginDevice = new Device();
+              pluginDevice.Id = jsonItem.id;
+              pluginDevice.DisplayName = jsonItem.displayName;
+ //             pluginDevice.Icon = "light.png";
+ //             pluginDevice.DeviceType = "Light";
+//              pluginDevice.TileTemplate = "LightTile.xaml";
+//              pluginDevice.DetailsTemplate = "LightDetails.xaml";
+//              pluginDevice.Capabilities = jsonItem.capability;
+              pluginDevice.Attributes = jsonItem.attributes;
+              allDevices.push(pluginDevice);
+    }
+    plugin.Devices = allDevices;
+}
