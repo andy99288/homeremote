@@ -502,7 +502,7 @@ def installed() {
 }
 
 def updated() {
-	deug("updated")
+	debug("updated")
 	initialize()	
 }
 
