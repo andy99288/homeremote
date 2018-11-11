@@ -15,6 +15,6 @@ At this point, these instructions are very limited.   If there is interest in wo
 9) Go back to the explorer, right click on Hubitat in devices, and choose Synchronize Devices.  The devices you authorized in Hubtitat should show up. 
 10) Start designing! See http://thehomeremote.com/ for documentation/community forums.   Basically, you add a control and assign its state to one of the devices you just added.   
 
-The app and/or connection between the two needs improvement.  An API interface would be preferrable.   Until an APi is available, I'm looking for help improving the code for the HTTP connection.  The http connection is a bit slow and seems to bog down the hubitat if you add a lot of devices.  
+The app and/or connection between the two needs improvement.  An API interface would be preferrable.   Until an API is available, I'm looking for help improving the code for the HTTP connection.  The HTTP connection is a bit slow and seems to bog down the Hubitat if you add a lot of devices or refersh the device states too often.  
 
-This app was based on, and still shows the original header information, for The Home Remote app for SmartThings.  
+This Hubitat app was based on, and still shows header information for The Home Remote app for SmartThings.  
