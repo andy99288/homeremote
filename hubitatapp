@@ -29,86 +29,88 @@ import groovy.json.JsonBuilder
 //API Endpoints
 mappings {
     // Synchronize
-    path("/sync") 							{	action: [	GET: "sync"        					]}
+    path("/sync") 							{	action: [	GET: "sync"        				]}
     // Poll
-    path("/poll") 							{	action: [	GET: "getPoll"        				]}
-    // Authorized Devices
-    path("/allowedAttributes") 				{	action: [	GET: "getAllowedAttributes"      	]}
+    path("/poll") 							{	action: [	GET: "poll"        				]}
+    // Allowed Attributes
+    path("/allowedAttributes") 				{	action: [	GET: "getAllowedAttributes"     ]}
 	// Execute Command
-    path("/executeCommand") 				{	action: [	PUT: "executeCommand"   		   	]}
+    path("/executeCommand") 				{	action: [	PUT: "executeCommand"   		]}
 }
 
 
 
 /* Capabiities List 
-Unused and or don't follow the below rules (2 lines down) have been commented out.  
-Items may work if "//" is removed (and it follows the rule on the next line), but those functions haven't been tested.
-Only 1 attribute per line. Columns 2,3,4 need to be unique.  Column 4 to match hubitat attributes including capitilization.*/
+Unused and or don't follow the below rules have been commented out.  Might increase polling speed to comment out unused. 
+Items may work if "//" is removed (and it follows the below rules), but those functions haven't been tested.
+Rules: Only 1 attribute per line.  Columns 3 & 4 capitalized for Home Remote compatibility. Columns 2 needs to be unique - possibly 3 & 4 as well (unsure).  
+List of built in Home Remote capabilities (match if possible): https://groups.google.com/forum/#!topic/thehomeremote/WK54m_jwPaM
+Could not find list of known Hubitat capabilities, but they generally seem to match up besides capitalization. */
 private def getCapabilities() { 
 
-    [   //Capability								Name in User Interface			Call Name							Attribute       
-//        ["capability.accelerationSensor",			"Acceleration Sensor",			"accelerations",					"acceleration"],
-//        ["capability.actuator",						"Actuator",						"actuators",						""],
-//        ["capability.alarm",						"Alarm",						"alarms",							"alarm"],
-//        ["capability.audioNotification",			"Audio Notification",			"audioNotifications",				""],
-        ["capability.battery",						"Battery",						"batteries",						"battery"],
-//        ["capability.beacon",						"Beacon",						"beacons",							"presence"],
-//        ["capability.button",						"Button",						"buttons",							"button"],
-//        ["capability.carbonDioxideMeasurement",		"Carbon Dioxide Measurement",	"carbonDioxideMeasurements",		"carbonDioxide"],
-//        ["capability.carbonMonoxideDetector",		"Carbon Monoxide Detector",		"carbonMonoxideDetectors",			"carbonMonoxide"],
-		["capability.colorControl",					"Color",						"colorDevices",						"color"],
-//		["capability.colorControl",					"Hue",							"hueDevices",						"hue"],
-//        ["capability.colorControl",					"Saturation",					"saturationDevices",				"saturation"],
-        ["capability.colorTemperature",				"Color Temperature",			"colorTemperatures",				"colorTemperature"],
-//        ["capability.consumable",					"Consumable",					"consumables",						"consumable"],
-        ["capability.contactSensor",	  			"Contact",						"contactSensors",					"contact"],
-//        ["capability.doorControl",	  				"Door Control",					"doorControls",						"door"],
-//        ["capability.energyMeter",					"Energy Meter",					"energyMeters",						"energy"],
-//        ["capability.estimatedTimeOfArrival",		"ETA",							"estimatedTimeOfArrivals",			"eta"],
-//        ["capability.garageDoorControl",			"Garage Door Control",			"garageDoorControls",				"door"],
-        ["capability.illuminanceMeasurement",		"Illuminance",					"illuminanceMeasurements",			"illuminance"],
-//        ["capability.imageCapture",					"Image Capture",				"imageCaptures",					"image"],
-//        ["capability.indicator",					"Indicator",					"indicators",						"indicatorStatus"],
-//        ["capability.lock" ,						"Lock",							"locks",							"lock"],
-//        ["capability.mediaController" ,				"Media Controller",				"mediaControllers",					["activities", "currentActivity"] ],
-//        ["capability.momentary" ,					"Momentary",					"momentaries",						""],
-        ["capability.motionSensor",					"Motion",						"motionSensors",					"motion"],
-//        ["capability.musicPlayer",					"Music Player",					"musicPlayer",						["level", "mute", "status", "trackData", "trackDescription"] ],
-//        ["capability.pHMeasurement",				"pH Measurement",				"pHMeasurements",					"pH"],
-//        ["capability.powerMeter",					"Power Meter",					"powerMeters",						"power"],
-//        ["capability.power",						"Power",						"powers",							"powerSource"],
-        ["capability.presenceSensor",				"Presence",						"presenceSensors",					"presence"],
-        ["capability.relativeHumidityMeasurement",	"Humidity",						"relativeHumidityMeasurements",		"humidity"],
-//        ["capability.relaySwitch",					"Relay Switch",					"relaySwitches",					"switch"],
-//        ["capability.sensor",						"Sensor",						"sensors",							""],
- //       ["capability.shockSensor",					"Shock Sensor",					"shockSensors",						"shock"],
-//        ["capability.signalStrength",				"Signal Strength",				"signalStrengths",					""],
-//        ["capability.sleepSensor",					"Sleep Sensor",					"sleepSensors",						"sleeping"],
-//        ["capability.smokeDetector",				"Smoke Detector",				"smokeDetectors",					["smoke","carbonMonoxide"] ],
-//        ["capability.soundSensor",					"Sound Sensor",					"soundSensors",						"sound"],
-//        ["capability.speechRecognition",			"Speech Recognition",			"speechRecognitions",				"phraseSpoken"],
-//        ["capability.stepSensor",					"Step Sensor",					"stepSensors",						["goal","steps"] ],
-        ["capability.switch",						"Switches", 					"switches",							"switch"],
-        ["capability.switchLevel",					"Level",						"switchLevels",						"level"],
-//        ["capability.soundPressureLevel",			"Sound Pressure Level",			"soundPressureLevels",				"soundPressureLevel"],
-//        ["capability.tamperAlert",					"Tamper Alert",					"tamperAlert",						"tamper"],
-        ["capability.temperatureMeasurement" , 		"Temperature", 					"temperatureMeasurements",			"temperature"],
-//        ["capability.thermostat" , 					"Thermostat", 					"thermostats",						["coolingSetpoint","heatingSetpoint","thermostatFanMode","thermostatMode","thermostatOperatingState","thermostatSetpoint"] ],
-//        ["capability.thermostatCoolingSetpoint" , 	"Thermostat Cooling Setpoint", 	"thermostatCoolingSetpoints",		"coolingSetpoint"],
-//        ["capability.thermostatFanMode" , 			"Thermostat Fan Mode", 			"thermostatFanModes",				"thermostatFanMode"],
-//        ["capability.thermostatHeatingSetpoint" , 	"Thermostat Heating Setpoint", 	"thermostatHeatingSetpoints",		"heatingSetpoint"],
-//        ["capability.thermostatMode" , 				"Thermostat Mode", 				"thermostatModes",					"thermostatMode"],
-//        ["capability.thermostatOperatingState",		"Thermostat Operating State",	"thermostatOperatingStates",		"thermostatOperatingState"],
-//        ["capability.thermostatSetpoint",			"Thermostat Setpoint",			"thermostatSetpoints",				"thermostatSetpoint"],
-//        ["capability.threeAxis",					"Three Axis",					"threeAxises",						"threeAxis"],
-//        ["capability.tone",							"Tone",							"tones",							""],
-//        ["capability.touchSensor",					"Touch Sensor",					"touchSensors",						"touch"],
-//        ["capability.trackingMusicPlayer",			"Tracking Music Player",		"trackingMusicPlayers",				""],
-//        ["capability.ultravioletIndex",				"Ultraviolet Index",			"ultravioletIndexes",				"ultravioletIndex"],
-//        ["capability.valve",						"Valve",						"valves",							["contact", "valve"] ],
-//        ["capability.voltageMeasurement",			"Voltage Measurement",			"voltageMeasurements",				"voltage"],
-//        ["capability.waterSensor",					"Water Sensor",					"waterSensors",						"water"],
-//        ["capability.windowShade",					"Window Shade",					"windowShades",						"windowShade"],
+    [   //Capability in Hubitat						Name in Hubitat UI				Capability in Home Remote		Attribute       
+//        ["capability.accelerationSensor",			"Acceleration Sensor",			"Acceleration",					"Acceleration"],
+//        ["capability.actuator",						"Actuator",						"Actuator",						""],
+//        ["capability.alarm",						"Alarm",						"Alarm",						"Alarm"],
+//        ["capability.audioNotification",			"Audio Notification",			"AudioNotification",			""],
+        ["capability.battery",						"Battery",						"Battery",						"Battery"],
+//        ["capability.beacon",						"Beacon",						"Beacon",						"Presence"],
+//        ["capability.button",						"Button",						"Button",						"Button"],
+//        ["capability.carbonDioxideMeasurement",		"Carbon Dioxide Measurement",	"CarbonDioxideMeasurement",		"CarbonDioxide"],
+//        ["capability.carbonMonoxideDetector",		"Carbon Monoxide Detector",		"CarbonMonoxideDetector",		"CarbonMonoxide"],
+		["capability.colorControl",					"Color",						"ColorControl",					"Color"],
+//		["capability.colorControl",					"Hue",							"HueDevice",					"Hue"],
+//        ["capability.colorControl",					"Saturation",					"SaturationDevice",				"Saturation"],
+        ["capability.colorTemperature",				"Color Temperature",			"ColorTemperature",				"ColorTemperature"],
+//        ["capability.consumable",					"Consumable",					"Consumable",					"Consumable"],
+        ["capability.contactSensor",	  			"Contact",						"ContactSensor",				"Contact"],
+//        ["capability.doorControl",	  				"Door Control",					"DoorControl",					"Door"],
+//        ["capability.energyMeter",					"Energy Meter",					"EnergyMeter",					"Energy"],
+//        ["capability.estimatedTimeOfArrival",		"ETA",							"EstimatedTimeOfArrival",		"Eta"],
+//        ["capability.garageDoorControl",			"Garage Door Control",			"GarageDoorControl",			"Door"],
+        ["capability.illuminanceMeasurement",		"Illuminance",					"IlluminanceMeasurement",		"Illuminance"],
+//        ["capability.imageCapture",					"Image Capture",				"ImageCapture",					"Image"],
+//        ["capability.indicator",					"Indicator",					"Indicator",					"IndicatorStatus"],
+//        ["capability.lock" ,						"Lock",							"Lock",							"Lock"],
+//        ["capability.mediaController" ,				"Media Controller",				"MediaController",				["Activities", "CurrentActivity"] ],
+//        ["capability.momentary" ,					"Momentary",					"Momentary",					""],
+        ["capability.motionSensor",					"Motion",						"MotionSensor",					"Motion"],
+//        ["capability.musicPlayer",					"Music Player",					"MusicPlayer",					["Level", "Mute", "Status", "TrackData", "TrackDescription"] ],
+//        ["capability.pHMeasurement",				"pH Measurement",				"PHMeasurement",				"PH"],
+//        ["capability.powerMeter",					"Power Meter",					"PowerMeter",					"Power"],
+//        ["capability.power",						"Power",						"Power",						"PowerSource"],
+        ["capability.presenceSensor",				"Presence",						"PresenceSensor",				"Presence"],
+        ["capability.relativeHumidityMeasurement",	"Humidity",						"RelativeHumidityMeasurement",	"Humidity"],
+//        ["capability.relaySwitch",					"Relay Switch",					"RelaySwitch",					"Switch"],
+//        ["capability.sensor",						"Sensor",						"Sensor",						""],
+//        ["capability.shockSensor",					"Shock Sensor",					"ShockSensor",					"Shock"],
+//        ["capability.signalStrength",				"Signal Strength",				"SignalStrength",				""],
+//        ["capability.sleepSensor",					"Sleep Sensor",					"SleepSensor",					"Sleeping"],
+//        ["capability.smokeDetector",				"Smoke Detector",				"SmokeDetector",				"Smoke"],
+//        ["capability.soundSensor",					"Sound Sensor",					"SoundSensor",					"Sound"],
+//        ["capability.speechRecognition",			"Speech Recognition",			"SpeechRecognition",			"PhraseSpoken"],
+//        ["capability.stepSensor",					"Step Sensor",					"StepSensor",					["Goal","Steps"] ],
+        ["capability.switch",						"Switches", 					"Switch",						"Switch"],
+        ["capability.switchLevel",					"Level",						"SwitchLevel",					"Level"],
+//        ["capability.soundPressureLevel",			"Sound Pressure Level",			"SoundPressureLevel",			"SoundPressureLevel"],
+//        ["capability.tamperAlert",					"Tamper Alert",					"TamperAlert",					"Tamper"],
+        ["capability.temperatureMeasurement" , 		"Temperature", 					"TemperatureMeasurement",		"Temperature"],
+//        ["capability.thermostat" , 					"Thermostat", 					"Thermostat",					["CoolingSetpoint","HeatingSetpoint","ThermostatFanMode","ThermostatMode","ThermostatOperatingState","ThermostatSetpoint"] ],
+//        ["capability.thermostatCoolingSetpoint" , 	"Thermostat Cooling Setpoint", 	"ThermostatCoolingSetpoint",	"CoolingSetpoint"],
+//        ["capability.thermostatFanMode" , 			"Thermostat Fan Mode", 			"ThermostatFanMode",			"ThermostatFanMode"],
+//        ["capability.thermostatHeatingSetpoint" , 	"Thermostat Heating Setpoint", 	"ThermostatHeatingSetpoint",	"HeatingSetpoint"],
+//        ["capability.thermostatMode" , 				"Thermostat Mode", 				"ThermostatMode",				"ThermostatMode"],
+//        ["capability.thermostatOperatingState",		"Thermostat Operating State",	"ThermostatOperatingState",		"ThermostatOperatingState"],
+//        ["capability.thermostatSetpoint",			"Thermostat Setpoint",			"ThermostatSetpoint",			"ThermostatSetpoint"],
+//        ["capability.threeAxis",					"Three Axis",					"ThreeAxis",					"ThreeAxis"],
+//        ["capability.tone",							"Tone",							"Tone",							""],
+//        ["capability.touchSensor",					"Touch Sensor",					"TouchSensor",					"Touch"],
+//        ["capability.trackingMusicPlayer",			"Tracking Music Player",		"TrackingMusicPlayer",			""],
+//        ["capability.ultravioletIndex",				"Ultraviolet Index",			"UltravioletIndex",				"UltravioletIndex"],
+//        ["capability.valve",						"Valve",						"Valve",						"Valve"],
+//        ["capability.voltageMeasurement",			"Voltage Measurement",			"VoltageMeasurement",			"Voltage"],
+//        ["capability.waterSensor",					"Water Sensor",					"Water",						"Water"],
+//        ["capability.windowShade",					"Window Shade",					"WindowShade",					"WindowShade"],
     ]  
 }
 
@@ -137,7 +139,6 @@ def main(){
 				href "displayConnectionInfoPage", title: "Connection Info", description: "The Local URL, Cloud URL, and Bearer Token will show in the log."
 				href "refreshHubitatTokenPage", title: "Refresh Hubitat Bearer Token", description: "Generates a new Bearer Token and displays it in the log."
 			}
-
 		}
 	)
 }
@@ -187,7 +188,7 @@ private getBearerToken() {
 
 
 
-//API URLS
+//SYNC URL
 
 def sync() {
 	debug("sync requested")
@@ -195,16 +196,22 @@ def sync() {
 
 	def device
 	
-	poll.collect{ i ->
+	syncGather.collect{ i ->
 		temp = [:]
 		device = i.id
-		temp << [displayName: i.displayName, id: i.id]
+		temp << [id: i.id, displayName: i.displayName]
 		def attr = []
 		def attr2 = [:]
-		poll.each {
+		def cap = []
+		def cap2 = [:]
+		syncGather.each {
 			if (it.id == device) {
 			attr << it?.attribute
+			cap << it?.capability
 			}
+		cap = cap.unique()
+		cap2 << [capabilities: cap]
+		temp << cap2
 		attr = attr.unique()
 		attr2 << [attributes: attr]
 		temp << attr2
@@ -215,51 +222,101 @@ def sync() {
 	debug("sync data returned")
 	return syncData
 }
-	
-def getPoll() {
-	debug("polling requested")
+
+
+def getSyncGather() {
 	def resp = []
-	def a
+	def attr
 	allowedAttributes.each {	
-		a = it.attribute
-		[it.group].each {
+		attr = it.attribute
+		[it.capability].each {
 			settings[it].collect{ i ->
 				def devicedata = [:]
-				devicedata << [displayName: i.displayName, id: i.id, attribute: a, value: i.currentState(a)?.value]
+				devicedata << [displayName: i.displayName, id: i.id, capability: it, attribute: attr]
 				resp << devicedata
 			}
 		}
 	}
-	debug("poll data returned")
 	return resp
 }
 
+
+//Poll URL
+
+def poll() {
+	debug("poll requested")
+	syncData = []
+
+	def device
+	
+	pollGather.collect{ i ->
+		temp = [:]
+		device = i.id
+		temp << [ id: i.id ]
+		def attr = [:]
+		def attr2 = [:]
+		pollGather.each {
+			if (it.id == device) {
+				attr << [(it?.attribute): it?.value]
+			}
+		attr2 << [attributes: attr]
+		temp << attr2
+		}
+		syncData << temp
+	}
+	syncData = syncData.unique()
+	debug("poll data returned")
+	return syncData
+}
+
+def getPollGather() {
+	def pollData = []
+	def attr
+	def val
+	allowedAttributes.each {	
+		attr = it.attribute
+		[it.capability].each {
+			settings[it].collect{ i ->
+				if(i.currentState(attr.uncapitalize())?.value instanceof CharSequence) {
+					val = i.currentState(attr.uncapitalize())?.value.capitalize()
+				}
+				else
+				{ 
+					val = i.currentState(attr.uncapitalize())?.value
+				}
+				def deviceData = [:]
+				deviceData << [id: i.id, attribute: attr, value: (val)]
+				pollData << deviceData
+			}
+		}
+	}
+	return pollData
+}
+
+// Allowed Attributes URL
 def getAllowedAttributes() {
-	debug("allowed attributes requested")
 	def caps = []
 	capabilities.each{
-		caps << [attribute: it[3], group: it[2], capability: it[0]]
+		caps << [capability: it[2], attribute: it[3] ]
 	}
-	debug("allowed attributes returned")
 	return caps
 }
 
-private getAuthorizedDevices() {
-	debug("authroized devices called")
-    def deviceList = []
-    capabilities.each { 
-        deviceList << settings[it[2]] 
-    }
-	debug("authroized devices returned")
-    return deviceList?.findAll()?.flatten().unique { it.id }
-}
-
-// Code for Executing Commands
+// Execute Commands
 def executeCommand() {    
 	debug("execute command called")
     def deviceId = request.JSON?.deviceId
-    def attribute = request.JSON?.attribute 
-    def value = request.JSON?.value    
+    def attribute = request.JSON?.attribute.uncapitalize() 
+    def value
+	
+	if(request.JSON?.value instanceof CharSequence) {
+		value = request.JSON?.value.uncapitalize()
+	}
+	else
+	{ 
+		value = request.JSON?.value
+	}
+	    
     if (deviceId) {
 		def device = findDevice(deviceId)
         def command
@@ -428,7 +485,6 @@ def getContactCommand(value){
 }
 
 def findDevice(id) {
-	debug("findDevice called")
     def device = null
     capabilities.find { 
         settings[it[2]].find { d ->
@@ -490,7 +546,7 @@ def hexToRgb(colorHex) {
 
 
 
-// Other
+// Install/Uninstall/Update
 
 def uninstalled() {
 	debug("uninstalled")
@@ -502,7 +558,6 @@ def installed() {
 }
 
 def updated() {
-	debug("updated")
 	initialize()	
 }
 
@@ -526,10 +581,10 @@ private initializeAppEndpoint() {
 
 
 
-//Debug Router to log events if logging is turned on
+//Debugging
+
 def debug(evt) {
 	if (logging) {
     	log.debug evt
     }
 }
-
