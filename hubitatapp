@@ -90,7 +90,7 @@ private def getCapabilities() {
 //        ["capability.soundSensor",					"Sound Sensor",					"SoundSensor",					"Sound"],
 //        ["capability.speechRecognition",			"Speech Recognition",			"SpeechRecognition",			"PhraseSpoken"],
 //        ["capability.stepSensor",					"Step Sensor",					"StepSensor",					["Goal","Steps"] ],
-        ["capability.switch",						"Switches", 					"Switch",						"Switch"],
+        ["capability.switch",						"Switch", 					"Switch",						"Switch"],
         ["capability.switchLevel",					"Level",						"SwitchLevel",					"Level"],
 //        ["capability.soundPressureLevel",			"Sound Pressure Level",			"SoundPressureLevel",			"SoundPressureLevel"],
 //        ["capability.tamperAlert",					"Tamper Alert",					"TamperAlert",					"Tamper"],
