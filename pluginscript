@@ -3,10 +3,12 @@ plugin.OnConnect = onConnect;
 plugin.OnDisconnect = onDisconnect;
 plugin.OnPoll = onPoll;
 plugin.OnSynchronizeDevices = onSynchronizeDevices;
-plugin.PollingInterval = 15000;
-plugin.Settings = { "URL": "", "AccessToken": "" };
+plugin.PollingInterval = 2000;
+//plugin.ChangeInterval = 2000;
+plugin.Settings = { "LocalURL": "", "CloudURL": "", "AccessToken": "" };
 
 var http = new HTTPClient();
+var URL;
 
 function getDevice(id) {
     for (var d in plugin.Devices) {
@@ -21,49 +23,67 @@ function getDevice(id) {
 function onChangeRequest(device, attribute, value) {
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
     var content = { "deviceId": device.id, "attribute": attribute, "value":  value};
-    var r = http.put(plugin.Settings["URL"] + "/executeCommand", content, options);
+    var r = http.put(URL + "/executeCommand", content, options);
+    device[attribute] = value;
 }
 
 function onConnect() {
+    var options = { timeout:5000, headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+    
+    try {
+   	console.log("Testing Local Connection")
+    	var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
+         if (t.status == 200) {
+            console.log("Connected Locally");
+    		URL = plugin.Settings["LocalURL"];
+    		return;
+        }   	
+    }
+   catch (err) {
+   	console.log("Local Connection Failed.  Testing Cloud Connection.")
+    	var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
+    	if (t.status == 200) {
+            	console.log("Connected via Cloud");
+		URL = plugin.Settings["CloudURL"];
+    		return;
+        }   	
+    } 
+    console.log("Connection to Hubitat Failed")
 }
 
 function onDisconnect() {
 }
 
 function onPoll() {
-//  console.log("polling started");
     	
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
-
-	try {  // trying to safely exit function on error so that it will try again on next poll
-	var s = http.get(plugin.Settings["URL"] + "/poll", options);
-   	 	}  
-    	catch (err) {
-//    	  console.log("poll get request failed");
-        return;  
- 	 } 
-   
+    var s = http.get(URL + "/poll", options); 
     	var jsonArray = s.data;
    	for (var g in jsonArray) {
         	var jsonItem = jsonArray[g];
-        	var device = getDevice(jsonItem.id);
-        	if (!device) { // trying to stop "device undefined" error
-//        		console.log("caught device undefined error")
-        		return;}  
-        	if (jsonItem.attribute == null) { // trying to stop "attribute is null"
-//        		console.log("caught attribute is null error")
-        		return;}  
-       	if (device != null) {   	 	
-            		var attributeName = jsonItem.attribute;
-            		device[attributeName] = jsonItem.value;
-        	}
+        	var device = getDevice(jsonItem.id); 
+		for (var i in jsonItem.attributes) {
+			var jsonAttr = i;
+			var jsonAttrVal = jsonItem.attributes[i];
+       		if (device != null) {   	 
+            			var attributeName = jsonAttr;
+            			device[attributeName] = jsonAttrVal;
+        		}
+		}
 	}
-//	  console.log("polling complete");
 }
 
 function onSynchronizeDevices() {
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
-    var t = http.get(plugin.Settings["URL"] + "/sync", options);
+    
+    try {
+    	var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
+    }
+   catch (err) {
+    	var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
+    } 
+    
+    
     var jsonArray = t.data;
     var allDevices = [];
     for (var f in jsonArray) {
@@ -72,11 +92,52 @@ function onSynchronizeDevices() {
         	var pluginDevice = new Device();
               pluginDevice.Id = jsonItem.id;
               pluginDevice.DisplayName = jsonItem.displayName;
- //             pluginDevice.Icon = "light.png";
- //             pluginDevice.DeviceType = "Light";
-//              pluginDevice.TileTemplate = "LightTile.xaml";
-//              pluginDevice.DetailsTemplate = "LightDetails.xaml";
-//              pluginDevice.Capabilities = jsonItem.capability;
+              var caps = jsonItem.capabilities;
+              
+              if (caps.indexOf("SwitchLevel") >= 0) {
+              	pluginDevice.Icon = "light.png";
+             		pluginDevice.DeviceType = "Light";
+              	pluginDevice.TileTemplate = "LightTile.xaml";
+              	pluginDevice.DetailsTemplate = "LightDetails.xaml";
+              }
+              else
+              {
+              	 if (caps.indexOf("PresenceSensor") >= 0) {
+              		pluginDevice.Icon = "color.png";
+             			pluginDevice.DeviceType = "PresenceSensor";
+              		pluginDevice.TileTemplate = "PresenceSensorTile.xaml";
+              		//pluginDevice.DetailsTemplate = ;
+              	}
+              	else
+              	{
+              		if (caps.indexOf("ContactSensor") >= 0) {
+              			pluginDevice.Icon = "lock.png";
+             				pluginDevice.DeviceType = "ContactSensor";
+              			pluginDevice.TileTemplate = "ContactSensorTile.xaml";
+              			//pluginDevice.DetailsTemplate = ;
+              		}
+              		else 
+              		{
+              		        if (caps.indexOf("TemperatureMeasurement") >= 0) {
+              				pluginDevice.Icon = "sunny.png";
+             					pluginDevice.DeviceType = "Temperature";
+              				pluginDevice.TileTemplate = "WeatherStationTile.xaml";
+              				//pluginDevice.DetailsTemplate = ;
+              			}
+              			else
+              			{
+              				if (caps.indexOf("Switch") >= 0) {
+              					pluginDevice.Icon = "power_button_with_circle.png";
+             						pluginDevice.DeviceType = "Switch";
+              					pluginDevice.TileTemplate = "OutletTile.xaml";
+              					//pluginDevice.DetailsTemplate = ;
+              				}
+              			}
+              		}
+              	}
+             	}
+             	
+              pluginDevice.Capabilities = jsonItem.capabilities;
               pluginDevice.Attributes = jsonItem.attributes;
               allDevices.push(pluginDevice);
     }
