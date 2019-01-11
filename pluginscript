@@ -4,7 +4,7 @@ plugin.OnDisconnect = onDisconnect;
 plugin.OnPoll = onPoll;
 plugin.OnSynchronizeDevices = onSynchronizeDevices;
 plugin.PollingInterval = 3000;
-//plugin.ChangeInterval = 2000;
+plugin.ChangeInterval = 2000;
 plugin.Settings = { "LocalURL": "", "CloudURL": "", "AccessToken": "" };
 
 var http = new HTTPClient();
