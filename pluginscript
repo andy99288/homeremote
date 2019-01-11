@@ -3,12 +3,13 @@ plugin.OnConnect = onConnect;
 plugin.OnDisconnect = onDisconnect;
 plugin.OnPoll = onPoll;
 plugin.OnSynchronizeDevices = onSynchronizeDevices;
-plugin.PollingInterval = 2000;
+plugin.PollingInterval = 3000;
 //plugin.ChangeInterval = 2000;
 plugin.Settings = { "LocalURL": "", "CloudURL": "", "AccessToken": "" };
 
 var http = new HTTPClient();
 var URL;
+var LOG_ID = -1;
 
 function getDevice(id) {
     for (var d in plugin.Devices) {
@@ -21,125 +22,158 @@ function getDevice(id) {
 }
 
 function onChangeRequest(device, attribute, value) {
+    log("Request Recevied");
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
-    var content = { "deviceId": device.id, "attribute": attribute, "value":  value};
+    var content = { "deviceId": device.id, "attribute": attribute, "value": value };
     var r = http.put(URL + "/executeCommand", content, options);
     device[attribute] = value;
+    log("Request Complete");
 }
 
 function onConnect() {
-    var options = { timeout:5000, headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+    var options = { timeout: 5000, headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+
+    var lastPollID = "Last Poll"
+    var device = getDevice(lastPollID)
+    var attr = "Timestamp"
+    var lastPoll = device[attr];
     
-    try {
-   	console.log("Testing Local Connection")
-    	var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
-         if (t.status == 200) {
-            console.log("Connected Locally");
-    		URL = plugin.Settings["LocalURL"];
-    		return;
-        }   	
-    }
-   catch (err) {
-   	console.log("Local Connection Failed.  Testing Cloud Connection.")
-    	var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
-    	if (t.status == 200) {
-            	console.log("Connected via Cloud");
-		URL = plugin.Settings["CloudURL"];
-    		return;
-        }   	
-    } 
-    console.log("Connection to Hubitat Failed")
+	if(lastPoll == "") {
+    		try {
+        		log("Testing Local Connection")
+        		var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
+       		 if (t.status == 200) {
+            		log("Connected Locally");
+            		URL = plugin.Settings["LocalURL"];
+            		return;
+        		}
+    		}
+    		catch (err) {
+        		log("Local Connection Failed.  Testing Cloud Connection.")
+        		var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
+        		if (t.status == 200) {
+           		 log("Connected via Cloud");
+            		URL = plugin.Settings["CloudURL"];
+            		return;
+        		}
+    		}
+    		log("Connection to Hubitat Failed")
+    	}
 }
 
 function onDisconnect() {
 }
 
 function onPoll() {
-    	
+    log("Poll Initialized");
+    
+    var lastPollID = "Last Poll"
+    var device = getDevice(lastPollID)
+    var attr = "Timestamp"
+    var lastPoll = device[attr];
+    
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
-    var s = http.get(URL + "/poll", options); 
-    	var jsonArray = s.data;
-   	for (var g in jsonArray) {
-        	var jsonItem = jsonArray[g];
-        	var device = getDevice(jsonItem.id); 
-		for (var i in jsonItem.attributes) {
-			var jsonAttr = i;
-			var jsonAttrVal = jsonItem.attributes[i];
-       		if (device != null) {   	 
-            			var attributeName = jsonAttr;
-            			device[attributeName] = jsonAttrVal;
-        		}
-		}
-	}
+    var content = { "lastPoll": lastPoll};
+    var s = http.put(URL + "/poll", content, options);
+    log("Poll Data Received from Hubitat");
+    var jsonArray = s.data;
+    for (var g in jsonArray) {
+        var jsonItem = jsonArray[g];
+        var device = getDevice(jsonItem.id);
+        for (var i in jsonItem.attributes) {
+            var jsonAttr = i;
+            var jsonAttrVal = jsonItem.attributes[i];
+            if (device != null) {
+                var attributeName = jsonAttr;
+                device[attributeName] = jsonAttrVal;
+            }
+        }
+    }
+    log("Poll Complete");
 }
 
 function onSynchronizeDevices() {
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
-    
+
     try {
-    	var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
+        var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
     }
-   catch (err) {
-    	var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
-    } 
-    
-    
+    catch (err) {
+        var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
+    }
+
+
     var jsonArray = t.data;
     var allDevices = [];
     for (var f in jsonArray) {
-    	 var jsonItem = jsonArray[f];
-        var device = getDevice(jsonItem.id);
-        	var pluginDevice = new Device();
-              pluginDevice.Id = jsonItem.id;
-              pluginDevice.DisplayName = jsonItem.displayName;
-              var caps = jsonItem.capabilities;
-              
-              if (caps.indexOf("SwitchLevel") >= 0) {
-              	pluginDevice.Icon = "light.png";
-             		pluginDevice.DeviceType = "Light";
-              	pluginDevice.TileTemplate = "LightTile.xaml";
-              	pluginDevice.DetailsTemplate = "LightDetails.xaml";
-              }
-              else
-              {
-              	 if (caps.indexOf("PresenceSensor") >= 0) {
-              		pluginDevice.Icon = "color.png";
-             			pluginDevice.DeviceType = "PresenceSensor";
-              		pluginDevice.TileTemplate = "PresenceSensorTile.xaml";
-              		//pluginDevice.DetailsTemplate = ;
-              	}
-              	else
-              	{
-              		if (caps.indexOf("ContactSensor") >= 0) {
-              			pluginDevice.Icon = "lock.png";
-             				pluginDevice.DeviceType = "ContactSensor";
-              			pluginDevice.TileTemplate = "ContactSensorTile.xaml";
-              			//pluginDevice.DetailsTemplate = ;
-              		}
-              		else 
-              		{
-              		        if (caps.indexOf("TemperatureMeasurement") >= 0) {
-              				pluginDevice.Icon = "sunny.png";
-             					pluginDevice.DeviceType = "Temperature";
-              				pluginDevice.TileTemplate = "WeatherStationTile.xaml";
-              				//pluginDevice.DetailsTemplate = ;
-              			}
-              			else
-              			{
-              				if (caps.indexOf("Switch") >= 0) {
-              					pluginDevice.Icon = "power_button_with_circle.png";
-             						pluginDevice.DeviceType = "Switch";
-              					pluginDevice.TileTemplate = "OutletTile.xaml";
-              					//pluginDevice.DetailsTemplate = ;
-              				}
-              			}
-              		}
-              	}
-             	}
-             	
-              pluginDevice.Capabilities = jsonItem.capabilities;
-              pluginDevice.Attributes = jsonItem.attributes;
-              allDevices.push(pluginDevice);
+        var jsonItem = jsonArray[f];
+        var pluginDevice = new Device();
+        pluginDevice.Id = jsonItem.id;
+        pluginDevice.DisplayName = jsonItem.displayName;
+        var caps = jsonItem.capabilities;
+
+        if (caps.indexOf("SwitchLevel") >= 0) {
+            pluginDevice.Icon = "light.png";
+            pluginDevice.DeviceType = "Light";
+            pluginDevice.TileTemplate = "LightTile.xaml";
+            pluginDevice.DetailsTemplate = "LightDetails.xaml";
+        }
+        else {
+            if (caps.indexOf("PresenceSensor") >= 0) {
+                pluginDevice.Icon = "color.png";
+                pluginDevice.DeviceType = "PresenceSensor";
+                pluginDevice.TileTemplate = "PresenceSensorTile.xaml";
+                //pluginDevice.DetailsTemplate = ;
+            }
+            else {
+                if (caps.indexOf("ContactSensor") >= 0) {
+                    pluginDevice.Icon = "lock.png";
+                    pluginDevice.DeviceType = "ContactSensor";
+                    pluginDevice.TileTemplate = "ContactSensorTile.xaml";
+                    //pluginDevice.DetailsTemplate = ;
+                }
+                else {
+                    if (caps.indexOf("TemperatureMeasurement") >= 0) {
+                        pluginDevice.Icon = "sunny.png";
+                        pluginDevice.DeviceType = "Temperature";
+                        pluginDevice.TileTemplate = "WeatherStationTile.xaml";
+                        //pluginDevice.DetailsTemplate = ;
+                    }
+                    else {
+                        if (caps.indexOf("Switch") >= 0) {
+                            pluginDevice.Icon = "power_button_with_circle.png";
+                            pluginDevice.DeviceType = "Switch";
+                            pluginDevice.TileTemplate = "OutletTile.xaml";
+                            //pluginDevice.DetailsTemplate = ;
+                        }
+                    }
+                }
+            }
+        }
+
+        //pluginDevice.Capabilities = jsonItem.capabilities;
+        pluginDevice.Attributes = jsonItem.attributes;
+        allDevices.push(pluginDevice);
     }
+
+    var logDevice = new Device();
+    logDevice.Id = LOG_ID;
+    logDevice.DisplayName = "__Log";
+    logDevice.Attributes = ["Log"];
+    allDevices.push(logDevice);
+
     plugin.Devices = allDevices;
+}
+
+function log(message) {
+    var d = new Date();
+    var device = getDevice(LOG_ID);
+    var date = new Date().toISOString();
+    var messageWithDate = date + "  \t" + message; 
+    if (device.Log != null) {
+        device.Log = device.Log + "\n" + messageWithDate;
+    }
+    else {
+        device.Log = messageWithDate;
+    }
 }
