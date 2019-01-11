@@ -16,24 +16,22 @@
 
 definition(
     name: "Home Remote",
-    namespace: "thehomeremote.homeremote",
+    namespace: "thehomeremote.com",
     author: "The Home Remote",
     description: "Web service that enables communication between the Home Remote app and a Hubitat Home Elevation hub.",
 	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
 )
-	
-import groovy.json.JsonBuilder
+
+import groovy.time.TimeCategory
 
 //API Endpoints
 mappings {
     // Synchronize
     path("/sync") 							{	action: [	GET: "sync"        				]}
     // Poll
-    path("/poll") 							{	action: [	GET: "poll"        				]}
-    // Allowed Attributes
-    path("/allowedAttributes") 				{	action: [	GET: "getAllowedAttributes"     ]}
+    path("/poll") 							{	action: [	PUT: "poll"        				]}
 	// Execute Command
     path("/executeCommand") 				{	action: [	PUT: "executeCommand"   		]}
 }
@@ -70,6 +68,7 @@ private def getCapabilities() {
 //        ["capability.garageDoorControl",			"Garage Door Control",			"GarageDoorControl",			"Door"],
         ["capability.illuminanceMeasurement",		"Illuminance",					"IlluminanceMeasurement",		"Illuminance"],
 //        ["capability.imageCapture",					"Image Capture",				"ImageCapture",					"Image"],
+        ["capability.indicator",					"Data Store",					"DataStore",					"DataStore"],
 //        ["capability.indicator",					"Indicator",					"Indicator",					"IndicatorStatus"],
 //        ["capability.lock" ,						"Lock",							"Lock",							"Lock"],
 //        ["capability.mediaController" ,				"Media Controller",				"MediaController",				["Activities", "CurrentActivity"] ],
@@ -95,13 +94,12 @@ private def getCapabilities() {
 //        ["capability.soundPressureLevel",			"Sound Pressure Level",			"SoundPressureLevel",			"SoundPressureLevel"],
 //        ["capability.tamperAlert",					"Tamper Alert",					"TamperAlert",					"Tamper"],
         ["capability.temperatureMeasurement" , 		"Temperature", 					"TemperatureMeasurement",		"Temperature"],
-//        ["capability.thermostat" , 					"Thermostat", 					"Thermostat",					["CoolingSetpoint","HeatingSetpoint","ThermostatFanMode","ThermostatMode","ThermostatOperatingState","ThermostatSetpoint"] ],
-//        ["capability.thermostatCoolingSetpoint" , 	"Thermostat Cooling Setpoint", 	"ThermostatCoolingSetpoint",	"CoolingSetpoint"],
-//        ["capability.thermostatFanMode" , 			"Thermostat Fan Mode", 			"ThermostatFanMode",			"ThermostatFanMode"],
-//        ["capability.thermostatHeatingSetpoint" , 	"Thermostat Heating Setpoint", 	"ThermostatHeatingSetpoint",	"HeatingSetpoint"],
-//        ["capability.thermostatMode" , 				"Thermostat Mode", 				"ThermostatMode",				"ThermostatMode"],
-//        ["capability.thermostatOperatingState",		"Thermostat Operating State",	"ThermostatOperatingState",		"ThermostatOperatingState"],
-//        ["capability.thermostatSetpoint",			"Thermostat Setpoint",			"ThermostatSetpoint",			"ThermostatSetpoint"],
+        ["capability.thermostat" , 					"Thermostat Cooling Setpoint", 	"ThermostatCoolingSetpoint",	"CoolingSetpoint"],
+//        ["capability.thermostat" , 					"Thermostat Fan Mode", 			"ThermostatFanMode",			"ThermostatFanMode"],
+        ["capability.thermostat" , 					"Thermostat Heating Setpoint", 	"ThermostatHeatingSetpoint",	"HeatingSetpoint"],
+        ["capability.thermostat" , 					"Thermostat Mode", 				"ThermostatMode",				"ThermostatMode"],
+        ["capability.thermostat",					"Thermostat Operating State",	"ThermostatOperatingState",		"ThermostatOperatingState"],
+//        ["capability.thermostat",					"Thermostat Setpoint",			"ThermostatSetpoint",			"ThermostatSetpoint"],
 //        ["capability.threeAxis",					"Three Axis",					"ThreeAxis",					"ThreeAxis"],
 //        ["capability.tone",							"Tone",							"Tone",							""],
 //        ["capability.touchSensor",					"Touch Sensor",					"TouchSensor",					"Touch"],
@@ -137,7 +135,7 @@ def main(){
    		 	}   
           	section("<h2>Hubitat Urls & Bearer Tokens</h2>") {
 				href "displayConnectionInfoPage", title: "Connection Info", description: "The Local URL, Cloud URL, and Bearer Token will show in the log."
-				href "refreshHubitatTokenPage", title: "Refresh Hubitat Bearer Token", description: "Generates a new Bearer Token and displays it in the log."
+				href "refreshHubitatTokenPage", title: "Refresh Hubitat Bearer Token", description: "Generates a new Access Token and displays it in the log."
 			}
 		}
 	)
@@ -146,10 +144,10 @@ def main(){
 private displayConnectionInfoPage() {
 	dynamicPage(name: "displayConnectionInfoPage", title: "") {
 		section() {
-			paragraph "The Local URL, Cloud URL, and Bearer Token have been displayed in the Logs."
-			log.info "Local Url: ${localUrl}"
-			log.info "Cloud Url: ${cloudUrl}"
-			log.info "Bearer Token: ${bearerToken}"
+			paragraph "The Local URL, Cloud URL, and Access Token have been displayed in the Logs."
+			log.info "LocalUrl: ${localUrl}"
+			log.info "CloudUrl: ${cloudUrl}"
+			log.info "AccessToken: ${bearerToken}"
 		}
 	}
 }
@@ -194,6 +192,21 @@ def sync() {
 	debug("sync requested")
 	syncData = []
 
+	timestamp = [:]
+	timestamp << [id: "Last Poll", displayName: "Last Poll"]
+	def tsCap = []
+	def tsCap2 = [:]
+	def tsAttr = []
+	def tsAttr2 = [:]
+	def date = new Date()
+	tsCap << "Timestamp"
+	tsCap2 << [capabilities: tsCap]
+	timestamp << tsCap2
+	tsAttr << "Timestamp"
+	tsAttr2 << [attributes: tsAttr]
+	timestamp << tsAttr2
+	syncData << timestamp
+	
 	def device
 	
 	syncGather.collect{ i ->
@@ -245,28 +258,46 @@ def getSyncGather() {
 
 def poll() {
 	debug("poll requested")
-	syncData = []
-
+	def lastPoll = request.JSON?.lastPoll
+	if (lastPoll == "") {lastPoll = "2000-01-01T05:00:00+0000"}
+	lastPoll = Date.parse("yyyy-M-d'T'H:m:ssX", lastPoll)
+	use ( TimeCategory) {
+		lastPoll = lastPoll - 1.seconds
+	}
+	pollData = []
 	def device
 	
+	timestamp = [:]
+	timestamp << [id: "Last Poll"]
+	def tsAttr = [:]
+	def tsAttr2 = [:]
+	def date = new Date()
+	tsAttr << [Timestamp: date]
+	tsAttr2 << [attributes: tsAttr]
+	timestamp << tsAttr2
+	pollData << timestamp
+		
 	pollGather.collect{ i ->
-		temp = [:]
-		device = i.id
-		temp << [ id: i.id ]
-		def attr = [:]
-		def attr2 = [:]
-		pollGather.each {
-			if (it.id == device) {
-				attr << [(it?.attribute): it?.value]
+		if(i.lastActivity > lastPoll) {
+			temp = [:]
+			device = i.id
+			temp << [ id: i.id ]
+			def attr = [:]
+			def attr2 = [:]
+			pollGather.each {
+				if (it.id == device) {
+					attr << [(it?.attribute): it?.value]
+				}
+			attr2 << [attributes: attr]
+			temp << attr2
 			}
-		attr2 << [attributes: attr]
-		temp << attr2
+			pollData << temp
 		}
-		syncData << temp
 	}
-	syncData = syncData.unique()
+	
+	pollData = pollData.unique()
 	debug("poll data returned")
-	return syncData
+	return pollData
 }
 
 def getPollGather() {
@@ -285,7 +316,7 @@ def getPollGather() {
 					val = i.currentState(attr.uncapitalize())?.value
 				}
 				def deviceData = [:]
-				deviceData << [id: i.id, attribute: attr, value: (val)]
+				deviceData << [id: i.id, attribute: attr, value: (val), lastActivity: i.lastActivity]
 				pollData << deviceData
 			}
 		}
@@ -293,7 +324,7 @@ def getPollGather() {
 	return pollData
 }
 
-// Allowed Attributes URL
+// Allowed Attributes
 def getAllowedAttributes() {
 	def caps = []
 	capabilities.each{
@@ -373,7 +404,11 @@ def executeCommand() {
         		break         
       		case "thermostatFanMode":
         		command = getThermostatFanModeCommand(value)
-        		break         
+        		break  
+			case "dataStore":
+			    valueIsParameter = true
+        		command = "save"
+        		break   
        		case "thermostatMode":
         		if (value == "emergency heat") {
                 	command = "emergencyHeat"
@@ -403,7 +438,7 @@ def executeCommand() {
         } 
     }
 	debug("execute command complete")
-	render contentType: "text/json", data: new JsonBuilder("status: 200").toPrettyString()
+	render contentType: "text/plain", data: "OK", status:200
 }
 
 def getDoorControlCommand(value){
