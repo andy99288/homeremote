@@ -22,7 +22,7 @@ function getDevice(id) {
 }
 
 function onChangeRequest(device, attribute, value) {
-    log("Request Recevied");
+    log("Request Received");
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
     var content = { "deviceId": device.id, "attribute": attribute, "value": value };
     var r = http.put(URL + "/executeCommand", content, options);
@@ -35,10 +35,17 @@ function onConnect() {
 
     var lastPollID = "Last Poll"
     var device = getDevice(lastPollID)
-    var attr = "Timestamp"
-    var lastPoll = device[attr];
     
-	if(lastPoll == "") {
+    if (device == "hh" || device == null) {
+        var lastPoll = null;
+        }
+        else
+       {
+    	var attr = "Timestamp"
+    	var lastPoll = device[attr];
+    	}
+    
+	if(lastPoll == null) {
     		try {
         		log("Testing Local Connection")
         		var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
@@ -49,15 +56,15 @@ function onConnect() {
         		}
     		}
     		catch (err) {
-        		log("Local Connection Failed.  Testing Cloud Connection.")
+       		log("Local Connection Failed.  Testing Cloud Connection.")
         		var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
         		if (t.status == 200) {
-           		 log("Connected via Cloud");
+          		 log("Connected via Cloud");
             		URL = plugin.Settings["CloudURL"];
             		return;
         		}
     		}
-    		log("Connection to Hubitat Failed")
+   		log("Connection to Hubitat Failed")
     	}
 }
 
@@ -69,8 +76,14 @@ function onPoll() {
     
     var lastPollID = "Last Poll"
     var device = getDevice(lastPollID)
+    if (device == null) {
+    	var lastPoll = "2000-01-01T05:00:00+0000";
+    	}
+    else
+    {
     var attr = "Timestamp"
     var lastPoll = device[attr];
+    }
     
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
     var content = { "lastPoll": lastPoll};
@@ -166,8 +179,12 @@ function onSynchronizeDevices() {
 }
 
 function log(message) {
-    var d = new Date();
     var device = getDevice(LOG_ID);
+    if (device == null) {
+    return;
+    }
+    
+    var d = new Date();
     var date = new Date().toISOString();
     var messageWithDate = date + "  \t" + message; 
     if (device.Log != null) {
