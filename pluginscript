@@ -3,7 +3,7 @@ plugin.OnConnect = onConnect;
 plugin.OnDisconnect = onDisconnect;
 plugin.OnPoll = onPoll;
 plugin.OnSynchronizeDevices = onSynchronizeDevices;
-plugin.PollingInterval = 3000;
+plugin.PollingInterval = 1000;
 plugin.ChangeInterval = 2000;
 plugin.Settings = { "LocalURL": "", "CloudURL": "", "AccessToken": "" };
 
@@ -31,41 +31,27 @@ function onChangeRequest(device, attribute, value) {
 }
 
 function onConnect() {
-    var options = { timeout: 5000, headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+    var options = { timeout: 3000, headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
 
-    var lastPollID = "Last Poll"
-    var device = getDevice(lastPollID)
-    
-    if (device == "hh" || device == null) {
-        var lastPoll = null;
-        }
-        else
-       {
-    	var attr = "Timestamp"
-    	var lastPoll = device[attr];
+    	try {
+        	log("Testing Local Connection")
+        	var t = http.get(plugin.Settings["LocalURL"] + "/init", options);
+       	 if (t.status == 200) {
+            	log("Connected Locally");
+            	URL = plugin.Settings["LocalURL"];
+            	return;
+        	}
     	}
-    
-	if(lastPoll == null) {
-    		try {
-        		log("Testing Local Connection")
-        		var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
-       		 if (t.status == 200) {
-            		log("Connected Locally");
-            		URL = plugin.Settings["LocalURL"];
-            		return;
-        		}
-    		}
-    		catch (err) {
-       		log("Local Connection Failed.  Testing Cloud Connection.")
-        		var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
-        		if (t.status == 200) {
-          		 log("Connected via Cloud");
-            		URL = plugin.Settings["CloudURL"];
-            		return;
-        		}
-    		}
-   		log("Connection to Hubitat Failed")
+    	catch (err) {
+       	log("Local Connection Failed.  Testing Cloud Connection.")
+        	var t = http.get(plugin.Settings["CloudURL"] + "/init", options);
+        	if (t.status == 200) {
+          	log("Connected via Cloud");
+            	URL = plugin.Settings["CloudURL"];
+            	return;
+        	}
     	}
+   	log("Connection to Hubitat Failed")
 }
 
 function onDisconnect() {
@@ -145,26 +131,44 @@ function onSynchronizeDevices() {
                     pluginDevice.TileTemplate = "ContactSensorTile.xaml";
                     //pluginDevice.DetailsTemplate = ;
                 }
-                else {
-                    if (caps.indexOf("TemperatureMeasurement") >= 0) {
-                        pluginDevice.Icon = "sunny.png";
-                        pluginDevice.DeviceType = "Temperature";
-                        pluginDevice.TileTemplate = "WeatherStationTile.xaml";
-                        //pluginDevice.DetailsTemplate = ;
-                    }
-                    else {
-                        if (caps.indexOf("Switch") >= 0) {
-                            pluginDevice.Icon = "power_button_with_circle.png";
-                            pluginDevice.DeviceType = "Switch";
-                            pluginDevice.TileTemplate = "OutletTile.xaml";
-                            //pluginDevice.DetailsTemplate = ;
+//			removed option for Details Template "ThermostatDetails2" as fan mode doesn't work correctly with nest thermostat
+//                else {
+//                   	if (caps.indexOf("ThermostatFanMode") >= 0) {
+//                        pluginDevice.Icon = "thermometer.png";
+//                        pluginDevice.DeviceType = "Thermostat";
+//                        pluginDevice.TileTemplate = "ThermostatTile.xaml";
+//                        pluginDevice.DetailsTemplate = "ThermostatDetails2.xaml";
+//                    }
+			else {
+                   		if (caps.indexOf("ThermostatHeatingSetpoint") >= 0 || caps.indexOf("ThermostatCoolingSetpoint") >= 0) {
+                        	   pluginDevice.Icon = "thermometer.png";
+                       	   pluginDevice.DeviceType = "Thermostat";
+                        	   pluginDevice.TileTemplate = "ThermostatTile.xaml";
+                        	   pluginDevice.DetailsTemplate = "ThermostatDetails.xaml";
+                    		}
+                		else {
+                    	  		if (caps.indexOf("TemperatureMeasurement") >= 0) {
+                       		   pluginDevice.Icon = "sunny.png";
+                        		   pluginDevice.DeviceType = "Temperature";
+                        		   pluginDevice.TileTemplate = "WeatherStationTile.xaml";
+                        		   //pluginDevice.DetailsTemplate = ;
+                    			}
+                    	     		else {
+                       	 		if (caps.indexOf("Switch") >= 0) {
+                            		   pluginDevice.Icon = "power_button_with_circle.png";
+                            		   pluginDevice.DeviceType = "Switch";
+                            		   pluginDevice.TileTemplate = "OutletTile.xaml";
+                            		   //pluginDevice.DetailsTemplate = ;
+ //                           	}
+                            }
                         }
                     }
                 }
             }
         }
+		
 
-        //pluginDevice.Capabilities = jsonItem.capabilities;
+        pluginDevice.Capabilities = jsonItem.capabilities;
         pluginDevice.Attributes = jsonItem.attributes;
         allDevices.push(pluginDevice);
     }
