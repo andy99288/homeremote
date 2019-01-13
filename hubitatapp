@@ -28,6 +28,8 @@ import groovy.time.TimeCategory
 
 //API Endpoints
 mappings {
+	// Initialize (used to test local / cloud connection availability)
+    path("/init") 							{	action: [	GET: "init"        				]}
     // Synchronize
     path("/sync") 							{	action: [	GET: "sync"        				]}
     // Poll
@@ -41,7 +43,7 @@ mappings {
 /* Capabiities List 
 Unused and or don't follow the below rules have been commented out.  Might increase polling speed to comment out unused. 
 Items may work if "//" is removed (and it follows the below rules), but those functions haven't been tested.
-Rules: Only 1 attribute per line.  Columns 3 & 4 capitalized for Home Remote compatibility. Columns 2 needs to be unique - possibly 3 & 4 as well (unsure).  
+Rules: Only 1 attribute per line.  Columns 3 & 4 capitalized for Home Remote compatibility. Columns 2 & 3 need to be unique - possibly 4 as well (unsure).  
 List of built in Home Remote capabilities (match if possible): https://groups.google.com/forum/#!topic/thehomeremote/WK54m_jwPaM
 Could not find list of known Hubitat capabilities, but they generally seem to match up besides capitalization. */
 private def getCapabilities() { 
@@ -95,7 +97,7 @@ private def getCapabilities() {
 //        ["capability.tamperAlert",					"Tamper Alert",					"TamperAlert",					"Tamper"],
         ["capability.temperatureMeasurement" , 		"Temperature", 					"TemperatureMeasurement",		"Temperature"],
         ["capability.thermostat" , 					"Thermostat Cooling Setpoint", 	"ThermostatCoolingSetpoint",	"CoolingSetpoint"],
-//        ["capability.thermostat" , 					"Thermostat Fan Mode", 			"ThermostatFanMode",			"ThermostatFanMode"],
+        ["capability.thermostat" , 					"Thermostat Fan Mode", 			"ThermostatFanMode",			"ThermostatFanMode"],
         ["capability.thermostat" , 					"Thermostat Heating Setpoint", 	"ThermostatHeatingSetpoint",	"HeatingSetpoint"],
         ["capability.thermostat" , 					"Thermostat Mode", 				"ThermostatMode",				"ThermostatMode"],
         ["capability.thermostat",					"Thermostat Operating State",	"ThermostatOperatingState",		"ThermostatOperatingState"],
@@ -184,7 +186,11 @@ private getBearerToken() {
 	return "${state.accessToken}"
 }
 
-
+//INIT URL
+def init() {
+	def resp = []
+	return resp
+}
 
 //SYNC URL
 
