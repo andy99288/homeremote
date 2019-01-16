@@ -162,7 +162,7 @@ private refreshHubitatTokenPage() {
 				paragraph "A new Hubitat url has been created and sent to the log."				
 			} 
 			else {
-				paragraph "Please go to the Apps Code section of Hubitat, click 'Home Remote', Click OAuth, and then Enable.", title: "Please enable OAuth for Other Home Remote", required: true, state: null
+				paragraph "Please go to the Apps Code section of Hubitat, click 'Home Remote', Click OAuth, and then Enable.", title: "Please enable OAuth for Other Home Remote", required: true
 			}	
 			
 			log.info "Local Url: ${localUrl}"
