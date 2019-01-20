@@ -168,7 +168,7 @@ function onSynchronizeDevices() {
         }
 		
 
-        pluginDevice.Capabilities = jsonItem.capabilities;
+//        pluginDevice.Capabilities = jsonItem.capabilities;
         pluginDevice.Attributes = jsonItem.attributes;
         allDevices.push(pluginDevice);
     }
