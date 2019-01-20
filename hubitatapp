@@ -128,7 +128,7 @@ def main(){
 		dynamicPage(name: "main", title: "<h2>Home Remote Integration</h2>", uninstall: true, install: true){
 
     		section("Enable Logging") {
-        		input("logging", "bool", title: "Enable Logging for debugging", required: false, default:false) 
+        		input("logging", "bool", title: "Enable Logging for debugging", required: false, defaultValue:false) 
     		}
     		section("Allow Endpoint to Control These Things by Their Capabilities") {
         		for (cap in capabilities) {
