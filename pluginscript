@@ -3,22 +3,16 @@ plugin.OnConnect = onConnect;
 plugin.OnDisconnect = onDisconnect;
 plugin.OnPoll = onPoll;
 plugin.OnSynchronizeDevices = onSynchronizeDevices;
-plugin.PollingInterval = 1000;
-plugin.ChangeInterval = 2000;
+plugin.PollingInterval = 500;
 plugin.Settings = { "LocalURL": "", "CloudURL": "", "AccessToken": "" };
 
 var http = new HTTPClient();
 var URL;
 var LOG_ID = -1;
+var CONN_ID = -2;
 
 function getDevice(id) {
-    for (var d in plugin.Devices) {
-        var device = plugin.Devices[d];
-        if (device.Id == id) {
-            return device;
-        }
-    }
-    return null;
+    return plugin.Devices[id];
 }
 
 function onChangeRequest(device, attribute, value) {
@@ -36,7 +30,10 @@ function onConnect() {
     	try {
         	log("Testing Local Connection")
         	var t = http.get(plugin.Settings["LocalURL"] + "/init", options);
-       	 if (t.status == 200) {
+       	if (t.status == 200) {
+       	var device = getDevice(CONN_ID);
+       	var attr = "State"
+       	device[attr] = "Local";
             	log("Connected Locally");
             	URL = plugin.Settings["LocalURL"];
             	return;
@@ -46,6 +43,9 @@ function onConnect() {
        	log("Local Connection Failed.  Testing Cloud Connection.")
         	var t = http.get(plugin.Settings["CloudURL"] + "/init", options);
         	if (t.status == 200) {
+        	var device = getDevice(CONN_ID);
+            	var attr = "State"
+       	device[attr] = "Cloud";
           	log("Connected via Cloud");
             	URL = plugin.Settings["CloudURL"];
             	return;
@@ -103,7 +103,6 @@ function onSynchronizeDevices() {
 
 
     var jsonArray = t.data;
-    var allDevices = [];
     for (var f in jsonArray) {
         var jsonItem = jsonArray[f];
         var pluginDevice = new Device();
@@ -167,19 +166,27 @@ function onSynchronizeDevices() {
             }
         }
 		
-
 //        pluginDevice.Capabilities = jsonItem.capabilities;
         pluginDevice.Attributes = jsonItem.attributes;
-        allDevices.push(pluginDevice);
+
+        plugin.Devices[pluginDevice.Id] = pluginDevice;
     }
 
+//logging device
     var logDevice = new Device();
     logDevice.Id = LOG_ID;
     logDevice.DisplayName = "__Log";
     logDevice.Attributes = ["Log"];
-    allDevices.push(logDevice);
 
-    plugin.Devices = allDevices;
+    plugin.Devices[logDevice.Id] = logDevice;
+
+//device to store local/cloud connection status
+    var connDevice = new Device();
+    connDevice.Id = CONN_ID;
+    connDevice.DisplayName = "__Connection";
+    connDevice.Attributes = ["State"];
+
+    plugin.Devices[connDevice.Id] = connDevice;
 }
 
 function log(message) {
