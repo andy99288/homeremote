@@ -31,9 +31,11 @@ function onConnect() {
         	log("Testing Local Connection")
         	var t = http.get(plugin.Settings["LocalURL"] + "/init", options);
        	if (t.status == 200) {
-       	var device = getDevice(CONN_ID);
-       	var attr = "State"
-       	device[attr] = "Local";
+       		if (getDevice(CONN_ID) != null) {
+       		var device = getDevice(CONN_ID);
+       		var attr = "State"
+       		device[attr] = "Local";
+       		}
             	log("Connected Locally");
             	URL = plugin.Settings["LocalURL"];
             	return;
@@ -43,9 +45,11 @@ function onConnect() {
        	log("Local Connection Failed.  Testing Cloud Connection.")
         	var t = http.get(plugin.Settings["CloudURL"] + "/init", options);
         	if (t.status == 200) {
-        	var device = getDevice(CONN_ID);
-            	var attr = "State"
-       	device[attr] = "Cloud";
+       		if (getDevice(CONN_ID) != null) {
+       		var device = getDevice(CONN_ID);
+       		var attr = "State"
+       		device[attr] = "Cloud";
+       		}
           	log("Connected via Cloud");
             	URL = plugin.Settings["CloudURL"];
             	return;
