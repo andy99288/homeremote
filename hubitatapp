@@ -72,7 +72,7 @@ private def getCapabilities() {
 //        ["capability.imageCapture",					"Image Capture",				"ImageCapture",					"Image"],
         ["capability.indicator",					"Data Store",					"DataStore",					"DataStore"],
 //        ["capability.indicator",					"Indicator",					"Indicator",					"IndicatorStatus"],
-//        ["capability.lock" ,						"Lock",							"Lock",							"Lock"],
+        ["capability.lock" ,						"Lock",							"Lock",							"Lock"],
 //        ["capability.mediaController" ,				"Media Controller",				"MediaController",				["Activities", "CurrentActivity"] ],
 //        ["capability.momentary" ,					"Momentary",					"Momentary",					""],
         ["capability.motionSensor",					"Motion",						"MotionSensor",					"Motion"],
@@ -268,7 +268,7 @@ def poll() {
 	if (lastPoll == "") {lastPoll = "2000-01-01T05:00:00+0000"}
 	lastPoll = Date.parse("yyyy-M-d'T'H:m:ssX", lastPoll)
 	use ( TimeCategory) {
-		lastPoll = lastPoll - 4.seconds
+		lastPoll = lastPoll - 20.seconds
 	}
 	pollData = []
 	def device
