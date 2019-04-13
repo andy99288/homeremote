@@ -1,0 +1,39 @@
+definition(
+    name: "Uncapitalize Test",
+    namespace: "test",
+    author: "test",
+    description: "test",
+	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
+)
+
+
+preferences {
+	page(name: "main")
+	page(name: "logHello")
+	page(name: "logUncapitalizedHello")
+}
+
+def main(){
+	return (
+		dynamicPage(name: "main", title: "<h2>Uncapitalize Test</h2>", uninstall: true, install: true){
+  
+          	section("<h2> </h2>") {
+				href "logHello", title: "Log the word Hello", description: ""
+				href "logUncapitalizedHello", title: "Uncapitalize then Log the Word Hello", description: ""
+			}
+		}
+	)
+}
+
+private logHello() {
+	def resp = 'Hello'
+	log.info resp
+}
+
+private logUncapitalizedHello() {
+	def resp = 'Hello'
+	resp = resp.uncapitalize()
+	log.info resp
+}
