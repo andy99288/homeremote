@@ -1,8 +1,30 @@
-/**
- *  Home Remote
+/*
+ ** This code has been created using Work by the following two sources: 
  *
- *  Copyright 2018 The Home Remote
+ *    1)  Open-Dash.  
+ * 
+ *    Copyright 2017 Open-Dash.com
  *
+ *    Open-Dash API SmartApp
+ *
+ *    Author: Open-Dash
+ *    based on https://github.com/jodyalbritton/apismartapp/blob/master/endpoint.groovy
+ *    weather code from https://github.com/Dianoga/my-smartthings/blob/master/devicetypes/dianoga/weather-station.src/weather-station.groovy
+ *  
+ *    To Donate to this project please visit https://open-dash.com/donate/
+ *  
+ * At the time of writing, original code can be found at:  
+ *  https://github.com/open-dash/smartthings-api-smartapp/blob/master/smartapps/opendash/open-dash.src/open-dash.groovy
+ *
+ * 2) Home Remote.  
+ *
+ *    Copyright 2018 The Home Remote
+ *
+ *  At the time of writing, original code can be found at:  
+ *  http://thehomeremote.com/downloads/home-remote.groovy.txt
+ *
+*******************
+ *  Copyright 2018 mihaca
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
  *
@@ -13,6 +35,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+
 
 definition(
     name: "Home Remote",
@@ -70,7 +93,6 @@ private def getCapabilities() {
 //        ["capability.garageDoorControl",			"Garage Door Control",			"GarageDoorControl",			"Door"],
         ["capability.illuminanceMeasurement",		"Illuminance",					"IlluminanceMeasurement",		"Illuminance"],
 //        ["capability.imageCapture",					"Image Capture",				"ImageCapture",					"Image"],
-        ["capability.indicator",					"Data Store",					"DataStore",					"DataStore"],
 //        ["capability.indicator",					"Indicator",					"Indicator",					"IndicatorStatus"],
         ["capability.lock" ,						"Lock",							"Lock",							"Lock"],
 //        ["capability.mediaController" ,				"Media Controller",				"MediaController",				["Activities", "CurrentActivity"] ],
@@ -111,6 +133,10 @@ private def getCapabilities() {
 //        ["capability.voltageMeasurement",			"Voltage Measurement",			"VoltageMeasurement",			"Voltage"],
 //        ["capability.waterSensor",					"Water Sensor",					"Water",						"Water"],
 //        ["capability.windowShade",					"Window Shade",					"WindowShade",					"WindowShade"],
+// Below here are specific to developer.  Other users can disable. 
+        ["capability.indicator",					"Data Store",					"DataStore",					"DataStore"],
+        ["capability.actuator",						"What Did I Say",				"WhatDidISay",					"WhatDidISay"],
+
     ]  
 }
 
@@ -268,7 +294,7 @@ def poll() {
 	if (lastPoll == "") {lastPoll = "2000-01-01T05:00:00+0000"}
 	lastPoll = Date.parse("yyyy-M-d'T'H:m:ssX", lastPoll)
 	use ( TimeCategory) {
-		lastPoll = lastPoll - 20.seconds
+		lastPoll = lastPoll - 30.seconds
 	}
 	pollData = []
 	def device
