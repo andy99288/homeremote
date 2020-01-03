@@ -3,7 +3,7 @@ plugin.OnConnect = onConnect;
 plugin.OnDisconnect = onDisconnect;
 plugin.OnPoll = onPoll;
 plugin.OnSynchronizeDevices = onSynchronizeDevices;
-plugin.PollingInterval = 500;
+plugin.PollingInterval = 3000;
 plugin.Settings = { "LocalURL": "", "CloudURL": "", "AccessToken": "" };
 
 var http = new HTTPClient();
@@ -170,7 +170,7 @@ function onSynchronizeDevices() {
             }
         }
 		
-//        pluginDevice.Capabilities = jsonItem.capabilities;
+        pluginDevice.Capabilities = jsonItem.capabilities;
         pluginDevice.Attributes = jsonItem.attributes;
 
         plugin.Devices[pluginDevice.Id] = pluginDevice;
