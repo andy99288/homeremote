@@ -10,10 +10,13 @@ var http = new HTTPClient();
 var URL;
 var LOG_ID = -1;
 var CONN_ID = -2;
+var LASTPOLL_ID = "Last Poll"
+
 
 function getDevice(id) {
     return plugin.Devices[id];
 }
+
 
 function onChangeRequest(device, attribute, value) {
     log("Request Received");
@@ -23,6 +26,7 @@ function onChangeRequest(device, attribute, value) {
     device[attribute] = value;
     log("Request Complete");
 }
+
 
 function onConnect() {
     var options = { timeout: 3000, headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
@@ -58,14 +62,16 @@ function onConnect() {
    	log("Connection to Hubitat Failed")
 }
 
+
 function onDisconnect() {
 }
+
+
 
 function onPoll() {
     log("Poll Initialized");
     
-    var lastPollID = "Last Poll"
-    var device = getDevice(lastPollID)
+    var device = getDevice(LASTPOLL_ID)
     if (device == null) {
     	var lastPoll = "2000-01-01T05:00:00+0000";
     	}
@@ -74,7 +80,7 @@ function onPoll() {
     var attr = "Timestamp"
     var lastPoll = device[attr];
     }
-    
+   
     var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
     var content = { "lastPoll": lastPoll};
     var s = http.put(URL + "/poll", content, options);
@@ -95,88 +101,100 @@ function onPoll() {
     log("Poll Complete");
 }
 
+
 function onSynchronizeDevices() {
-    var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
+	var options = { headers: { 'Authorization': "Bearer " + plugin.Settings["AccessToken"] } };
 
-    try {
-        var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
-    }
-    catch (err) {
-        var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
-    }
+	try {
+	var t = http.get(plugin.Settings["LocalURL"] + "/sync", options);
+	}
+	catch (err) {
+	var t = http.get(plugin.Settings["CloudURL"] + "/sync", options);
+	}
 
+	var jsonArray = t.data;
+	for (var f in jsonArray) {
+		var jsonItem = jsonArray[f];
+		var pluginDevice = new Device();
+		pluginDevice.Id = jsonItem.id;
+		pluginDevice.DisplayName = jsonItem.displayName;
+		var caps = jsonItem.capabilities;
 
-    var jsonArray = t.data;
-    for (var f in jsonArray) {
-        var jsonItem = jsonArray[f];
-        var pluginDevice = new Device();
-        pluginDevice.Id = jsonItem.id;
-        pluginDevice.DisplayName = jsonItem.displayName;
-        var caps = jsonItem.capabilities;
+		if (caps.indexOf("ThermostatHeatingSetpoint") >= 0 || caps.indexOf("ThermostatCoolingSetpoint") >= 0) {
+			pluginDevice.Icon = "Thermometer";
+			pluginDevice.DeviceType = "Thermostat";
+			pluginDevice.TileTemplate = "ThermostatTile.xaml";
+			pluginDevice.DetailsTemplate = "ThermostatDetails.xaml";
+		}
+		else {
+		if (caps.indexOf("Lock") >= 0 ) {
+			pluginDevice.Icon = "Lock";
+			pluginDevice.DeviceType = "Lock";
+			pluginDevice.TileTemplate = "LockTile.xaml";
+			pluginDevice.DetailsTemplate = "LockDetails.xaml";
+		}
+		else {
+		if (caps.indexOf("SwitchLevel") >= 0) {
+			pluginDevice.Icon = "Lightbulb";
+			pluginDevice.DeviceType = "Light";
+			pluginDevice.TileTemplate = "LightTile.xaml";
+			pluginDevice.DetailsTemplate = "LightDetails.xaml";
+		}
+		else {
+		if (caps.indexOf("Switch") >= 0) {
+			pluginDevice.Icon = "Power";
+			pluginDevice.DeviceType = "Switch";
+			pluginDevice.TileTemplate = "SwitchTile.xaml";
+			pluginDevice.DetailsTemplate = "SwitchDetails.xaml";
+		}
+		else {
+		if (caps.indexOf("MotionSensor") >= 0) {
+			pluginDevice.Icon = "Walk";
+			pluginDevice.DeviceType = "Motion Sensor";
+			pluginDevice.TileTemplate = "MotionSensorTile.xaml";
+			pluginDevice.DetailsTemplate ="MotionSensorDetails.xaml"; ;
+		}
+		else {
+		if (caps.indexOf("PresenceSensor") >= 0) {
+			pluginDevice.Icon = "Person";
+			pluginDevice.DeviceType = "PresenceSensor";
+			pluginDevice.TileTemplate = "PresenceSensorTile.xaml";
+			pluginDevice.DetailsTemplate = "PresenceSensorDetails.xaml";
+		}
+		else {
+		if (caps.indexOf("ContactSensor") >= 0) {
+			pluginDevice.Icon = "Sensor";
+			pluginDevice.DeviceType = "ContactSensor";
+			pluginDevice.TileTemplate = "ContactSensorTile.xaml";
+			pluginDevice.DetailsTemplate = "ContactSensorDetails.xaml";
+		 }
+		else {
+		if (caps.indexOf("TemperatureMeasurement") >= 0) {
+			pluginDevice.Icon = "Sun";
+			pluginDevice.DeviceType = "Temperature";
+			pluginDevice.TileTemplate = "WeatherStationTile.xaml";
+			pluginDevice.DetailsTemplate ="WeatherStationDetails.xaml"; ;
+		}
+		else {
+		if (caps.indexOf("Battery") >= 0) {
+			pluginDevice.Icon = "Battery";
+			pluginDevice.DeviceType = "Battery";
+			pluginDevice.TileTemplate = "BatteryTile.xaml";
+			pluginDevice.DetailsTemplate = "BatteryDetails.xaml";
+		}
+		}
+		}
+		}
+		}
+		}
+		}
+		}
+		}
+	pluginDevice.Capabilities = jsonItem.capabilities;
+	plugin.Devices[pluginDevice.Id] = pluginDevice;
+	}
 
-        if (caps.indexOf("SwitchLevel") >= 0) {
-            pluginDevice.Icon = "light.png";
-            pluginDevice.DeviceType = "Light";
-            pluginDevice.TileTemplate = "LightTile.xaml";
-            pluginDevice.DetailsTemplate = "LightDetails.xaml";
-        }
-        else {
-            if (caps.indexOf("PresenceSensor") >= 0) {
-                pluginDevice.Icon = "color.png";
-                pluginDevice.DeviceType = "PresenceSensor";
-                pluginDevice.TileTemplate = "PresenceSensorTile.xaml";
-                //pluginDevice.DetailsTemplate = ;
-            }
-            else {
-                if (caps.indexOf("ContactSensor") >= 0) {
-                    pluginDevice.Icon = "lock.png";
-                    pluginDevice.DeviceType = "ContactSensor";
-                    pluginDevice.TileTemplate = "ContactSensorTile.xaml";
-                    //pluginDevice.DetailsTemplate = ;
-                }
-//			removed option for Details Template "ThermostatDetails2" as fan mode doesn't work correctly with nest thermostat
-//                else {
-//                   	if (caps.indexOf("ThermostatFanMode") >= 0) {
-//                        pluginDevice.Icon = "thermometer.png";
-//                        pluginDevice.DeviceType = "Thermostat";
-//                        pluginDevice.TileTemplate = "ThermostatTile.xaml";
-//                        pluginDevice.DetailsTemplate = "ThermostatDetails2.xaml";
-//                    }
-			else {
-                   		if (caps.indexOf("ThermostatHeatingSetpoint") >= 0 || caps.indexOf("ThermostatCoolingSetpoint") >= 0) {
-                        	   pluginDevice.Icon = "thermometer.png";
-                       	   pluginDevice.DeviceType = "Thermostat";
-                        	   pluginDevice.TileTemplate = "ThermostatTile.xaml";
-                        	   pluginDevice.DetailsTemplate = "ThermostatDetails.xaml";
-                    		}
-                		else {
-                    	  		if (caps.indexOf("TemperatureMeasurement") >= 0) {
-                       		   pluginDevice.Icon = "sunny.png";
-                        		   pluginDevice.DeviceType = "Temperature";
-                        		   pluginDevice.TileTemplate = "WeatherStationTile.xaml";
-                        		   //pluginDevice.DetailsTemplate = ;
-                    			}
-                    	     		else {
-                       	 		if (caps.indexOf("Switch") >= 0) {
-                            		   pluginDevice.Icon = "power_button_with_circle.png";
-                            		   pluginDevice.DeviceType = "Switch";
-                            		   pluginDevice.TileTemplate = "OutletTile.xaml";
-                            		   //pluginDevice.DetailsTemplate = ;
- //                           	}
-                            }
-                        }
-                    }
-                }
-            }
-        }
-		
-        pluginDevice.Capabilities = jsonItem.capabilities;
-        pluginDevice.Attributes = jsonItem.attributes;
-
-        plugin.Devices[pluginDevice.Id] = pluginDevice;
-    }
-
-//logging device
+//create logging device
     var logDevice = new Device();
     logDevice.Id = LOG_ID;
     logDevice.DisplayName = "__Log";
@@ -184,21 +202,28 @@ function onSynchronizeDevices() {
 
     plugin.Devices[logDevice.Id] = logDevice;
 
-//device to store local/cloud connection status
+//create device to store local/cloud connection status
     var connDevice = new Device();
     connDevice.Id = CONN_ID;
     connDevice.DisplayName = "__Connection";
     connDevice.Attributes = ["State"];
 
     plugin.Devices[connDevice.Id] = connDevice;
+    
+ //assign attribute to Last Poll and Remove Capability (hacky fix for data coming from HE)
+    var device = getDevice(LASTPOLL_ID);
+    device.Attributes = ["Timestamp"];
+    device.Capabilities = [null];
+    plugin.Devices[device.Id] = device;
 }
+
+
 
 function log(message) {
     var device = getDevice(LOG_ID);
     if (device == null) {
     return;
-    }
-    
+    }    
     var d = new Date();
     var date = new Date().toISOString();
     var messageWithDate = date + "  \t" + message; 
